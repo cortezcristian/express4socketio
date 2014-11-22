@@ -9,10 +9,26 @@ var server = app.listen(app.get('port'), function() {
 });
 
 var io = require('socket.io')(server);
+var userList = [];
 
 io.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
-    console.log(data);
-  });
+    console.log("socket connected");
+
+    socket.on("join", function(name){
+        console.log("joined")
+        socket.nick = encodeURI(name);
+        userList.push(socket.nick);
+    });
+
+    socket.on("chatsend", function(msg){
+        console.log(msg, encodeURI(msg));
+        io.sockets.emit("chat", socket.nick+": "+encodeURI(msg));
+    });
+    
+    socket.on("getUserList", function(){
+        socket.emit("reciveUserList", userList);
+    });
+    socket.on("disconnect", function(){
+        console.log("socket disconnected")
+    });
 });
